@@ -37,8 +37,64 @@ public class HealthService {
         return formBuilder.toString();
     }
 
+
     // 解析字符串文本
     public HealthForm parse(String formString) throws IllegalAccessException {
+        HealthForm healthForm = new HealthForm();
+        healthForm.setTime(pickUp(formString, "日期", "身高", "\\d+年\\d+月\\d+日"));
+        healthForm.setHeight(pickUp(formString, "身高", "体重", "\\d+"));
+        healthForm.setWeight(pickUp(formString, "体重", "腰围", "\\d+"));
+        healthForm.setWaistline(pickUp(formString, "腰围", "收缩压", "\\d+"));
+        healthForm.setSystolicPressure(pickUp(formString, "收缩压", "舒张压", "\\d+"));
+        healthForm.setDiastolicPressure(pickUp(formString, "舒张压", "血红蛋白", "\\d+"));
+        healthForm.setHemoglobin(pickUp(formString, "血红蛋白", "白细胞", "\\d+"));
+        healthForm.setWhiteBloodCell(pickUp(formString, "白细胞", "血小板", "\\d+"));
+        healthForm.setPlatelet(pickUp(formString, "血小板", "尿蛋白", "\\d+"));
+        healthForm.setUrineProtein(pickUp(formString, "尿蛋白", "尿糖", "阴性|阳性"));
+        healthForm.setUrineSugar(pickUp(formString, "尿糖", "尿酮体", "阴性|阳性"));
+        healthForm.setUrineKetoneBody(pickUp(formString, "尿酮体", "空腹血糖", "阴性|阳性"));
+        healthForm.setFastingBloodGlucose(pickUp(formString, "空腹血糖", "", "\\d+\\.\\d+"));
+
+        return healthForm;
+    }
+
+    public String pickUp(String formString, String keyWord, String nextKeyWord, String dataRegex) throws IllegalAccessException {
+        //  System.out.println("keyWord=" + keyWord);
+        int start = formString.indexOf(keyWord);
+        if (start == -1) {
+            // 未匹配到关键字,则直接返回
+            return null;
+        }
+        int end;
+        if (nextKeyWord == null || nextKeyWord.equals("")) {
+            end = formString.length();
+        } else {
+            int nextIndex = formString.indexOf(nextKeyWord);
+            if (nextIndex == -1) {
+                end = start + 10;
+            } else {
+                end = nextIndex;
+            }
+        }
+        //  System.out.println("start=" + start + ";end=" + end);
+        // 截取当前数据的匹配范围
+        String currentString = formString.substring(start, end);
+        //  System.out.println(currentString);
+        // 查找匹配数据
+        //  System.out.println("pattern=" + dataRegex);
+        Pattern pattern = Pattern.compile(dataRegex);
+        Matcher matcher = pattern.matcher(currentString);
+        if (matcher.find()) {
+            String data = matcher.group();
+            //  System.out.println("data=" + data);
+            return data;
+        }
+        return null;
+    }
+
+    // 迷之安卓不支持
+    @Deprecated
+    public HealthForm parseByAnno(String formString) throws IllegalAccessException {
         HealthForm healthForm = new HealthForm();
         Field[] fields = healthForm.getClass().getDeclaredFields();
         for (int i = 0; i < fields.length; i++) {
@@ -95,5 +151,4 @@ public class HealthService {
         System.out.println(healthForm);
         return healthForm;
     }
-
 }
